@@ -85,7 +85,6 @@ brew "messense/macos-cross-toolchains/aarch64-unknown-linux-musl"
 brew "messense/macos-cross-toolchains/x86_64-unknown-linux-musl"
 
 # Other CLI tools
-brew "flyctl"
 brew "bufbuild/buf/buf"
 brew "libass"
 brew "libpq"
@@ -109,9 +108,11 @@ cask "temurin"
 cask "visual-studio-code"
 
 # Apps (casks) — productivity & comms
+cask "1password"
 cask "microsoft-onenote"
 cask "setapp"
 cask "slack"
+cask "tailscale"
 cask "timemator"
 cask "whatsapp"
 

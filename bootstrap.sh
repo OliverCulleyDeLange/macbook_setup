@@ -124,10 +124,3 @@ symlink ".gitignore_global"
 # ── Done ───────────────────────────────────────────────────────────────────────
 echo
 echo "✓ Bootstrap complete."
-echo
-echo "Manual steps remaining:"
-echo "  1. Sign in to App Store and install: Magnet, Setapp, 1Password, Tailscale, etc."
-echo "  2. Install from vendor sites: Ableton, Rekordbox, Android Studio, IntelliJ, Docker"
-echo "  3. Restore SSH key or generate a new one (see step 8 output)"
-echo "  4. Sign in to: gh auth login, supabase login, fly auth login"
-echo "  5. Open Android Studio → SDK Manager to verify SDK setup"
