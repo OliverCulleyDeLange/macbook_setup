@@ -62,12 +62,15 @@ echo "  OK: $(node --version)"
 
 # ── 6. Android SDK ─────────────────────────────────────────────────────────────
 step "Android SDK"
-SDKMANAGER="$ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager"
+export ANDROID_HOME="$ANDROID_SDK"
+export ANDROID_SDK_ROOT="$ANDROID_SDK"
+# Android Studio bundles its own sdkmanager
+SDKMANAGER="/Applications/Android Studio.app/Contents/plugins/android/lib/deploy/sdkmanager/bin/sdkmanager"
 
 if [[ ! -f "$SDKMANAGER" ]]; then
-  echo "  android-commandlinetools cask not installed — run 'brew install --cask android-commandlinetools' first"
+  echo "  Android Studio not installed yet — skipping SDK install"
+  echo "  Re-run this script after installing Android Studio"
 else
-  # Accept licenses
   yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
 
   "$SDKMANAGER" \
