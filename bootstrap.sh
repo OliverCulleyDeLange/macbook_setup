@@ -3,7 +3,7 @@
 # Run once on a fresh machine. Safe to re-run.
 set -euo pipefail
 
-DOTFILES_REPO="git@github.com:olivercdl/dotfiles.git"   # <-- update this
+REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 ANDROID_SDK="$HOME/Library/Android/sdk"
 NODE_VERSION="24"
 
@@ -38,7 +38,7 @@ echo "  OK: $(rustc --version)"
 
 # ── 4. Homebrew Bundle ─────────────────────────────────────────────────────────
 step "brew bundle (this takes a while)"
-BREWFILE_PATH="$(dirname "$0")/Brewfile"
+BREWFILE_PATH="$REPO_DIR/Brewfile"
 if [[ ! -f "$BREWFILE_PATH" ]]; then
   echo "  Brewfile not found at $BREWFILE_PATH — skipping"
 else
@@ -105,15 +105,21 @@ fi
 
 # ── 9. Dotfiles ────────────────────────────────────────────────────────────────
 step "Dotfiles"
-if [[ ! -d "$HOME/.dotfiles" ]]; then
-  echo "  Cloning dotfiles repo..."
-  git clone --bare "$DOTFILES_REPO" "$HOME/.dotfiles"
-  git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" checkout
-  git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" config status.showUntrackedFiles no
-else
-  echo "  Already cloned — pulling latest"
-  git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" pull
-fi
+DOTFILES_DIR="$REPO_DIR/dotfiles"
+symlink() {
+  local src="$DOTFILES_DIR/$1" dst="$HOME/$1"
+  if [[ -e "$dst" && ! -L "$dst" ]]; then
+    mv "$dst" "$dst.bak"
+    echo "  Backed up existing $1 → $1.bak"
+  fi
+  ln -sf "$src" "$dst"
+  echo "  Linked $1"
+}
+
+symlink ".zshrc"
+symlink ".zshenv"
+symlink ".gitconfig"
+symlink ".gitignore_global"
 
 # ── Done ───────────────────────────────────────────────────────────────────────
 echo
