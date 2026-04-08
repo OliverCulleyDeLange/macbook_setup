@@ -19,9 +19,12 @@ echo "  OK"
 
 # ── 2. Homebrew ────────────────────────────────────────────────────────────────
 step "Homebrew"
+[[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+[[ -f /usr/local/bin/brew ]]    && eval "$(/usr/local/bin/brew shellenv)"
 if ! command -v brew &>/dev/null; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+  [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+  [[ -f /usr/local/bin/brew ]]    && eval "$(/usr/local/bin/brew shellenv)"
 fi
 echo "  OK: $(brew --version | head -1)"
 

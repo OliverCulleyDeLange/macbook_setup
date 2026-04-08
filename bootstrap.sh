@@ -29,11 +29,13 @@ ok "Xcode CLT ready"
 
 # ── 2. Homebrew ────────────────────────────────────────────────────────────────
 step "Homebrew"
-# Add to PATH first so re-runs don't think brew is missing
+# Add to PATH for both Apple Silicon (/opt/homebrew) and Intel (/usr/local)
 [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+[[ -f /usr/local/bin/brew ]]    && eval "$(/usr/local/bin/brew shellenv)"
 if ! command -v brew &>/dev/null; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+  [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+  [[ -f /usr/local/bin/brew ]]    && eval "$(/usr/local/bin/brew shellenv)"
 fi
 ok "$(brew --version | head -1)"
 
