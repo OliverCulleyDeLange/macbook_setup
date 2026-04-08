@@ -4,10 +4,11 @@ New Mac setup — installs all apps, CLI tools, and dotfiles automatically.
 
 ## Fresh Mac setup
 
-Run this single command in Terminal:
+Run these commands in Terminal:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/OliverCulleyDeLange/macbook_setup/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/OliverCulleyDeLange/macbook_setup/main/setup.sh -o ~/setup.sh
+bash ~/setup.sh
 ```
 
 This will:
