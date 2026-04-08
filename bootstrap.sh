@@ -45,6 +45,9 @@ else
   brew bundle --file="$BREWFILE_PATH" --no-upgrade
 fi
 
+# libheif postinstall sometimes fails during brew bundle — run it explicitly
+brew postinstall libheif 2>/dev/null || true
+
 # ── 5. nvm + Node ──────────────────────────────────────────────────────────────
 step "nvm + Node $NODE_VERSION"
 if [[ ! -d "$HOME/.nvm" ]]; then

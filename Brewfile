@@ -1,6 +1,4 @@
 tap "bufbuild/buf"
-tap "homebrew/bundle"
-tap "homebrew/services"
 tap "messense/macos-cross-toolchains"
 
 # Core tools
@@ -131,7 +129,6 @@ cargo "cargo-rail"
 cargo "cargo-sweep"
 cargo "sccache"
 cargo "sqlx-cli"
-cargo "sqlx-fmt"
 cargo "sqruff"
 cargo "taplo-cli"
 cargo "typos-cli"
