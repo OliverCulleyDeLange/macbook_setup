@@ -91,6 +91,7 @@ brew "smartmontools"
 brew "rtk"
 
 # Apps (casks) — dev tools
+cask "android-commandlinetools"
 cask "android-studio"
 cask "blackhole-16ch"
 cask "blackhole-2ch"

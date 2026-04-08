@@ -7,69 +7,99 @@ REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 ANDROID_SDK="$HOME/Library/Android/sdk"
 NODE_VERSION="24"
 
-step() { echo; echo "==> $*"; }
+BOLD="\033[1m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+RED="\033[0;31m"
+RESET="\033[0m"
+
+step()  { echo; echo -e "${BOLD}==> $*${RESET}"; }
+ok()    { echo -e "  ${GREEN}✓ $*${RESET}"; }
+warn()  { echo -e "  ${YELLOW}⚠ $*${RESET}"; }
+error() { echo -e "  ${RED}✗ $*${RESET}"; }
 
 # ── 1. Xcode Command Line Tools ────────────────────────────────────────────────
 step "Xcode CLT"
 if ! xcode-select -p &>/dev/null; then
   xcode-select --install
-  echo "  Install the CLT in the dialog, then re-run this script."
+  warn "Install the CLT in the dialog, then re-run this script."
   exit 0
 fi
-echo "  OK"
+ok "Xcode CLT ready"
 
 # ── 2. Homebrew ────────────────────────────────────────────────────────────────
 step "Homebrew"
+# Add to PATH first so re-runs don't think brew is missing
+[[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 if ! command -v brew &>/dev/null; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  # Add brew to PATH for the rest of this script (Apple Silicon)
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
-echo "  OK: $(brew --version | head -1)"
+ok "$(brew --version | head -1)"
 
-# ── 3. Rust (before brew bundle, which installs cargo tools) ───────────────────
+# ── 3. Dotfiles (early — other steps depend on shell config being in place) ────
+step "Dotfiles"
+DOTFILES_DIR="$REPO_DIR/dotfiles"
+symlink() {
+  local src="$DOTFILES_DIR/$1" dst="$HOME/$1"
+  if [[ -e "$dst" && ! -L "$dst" ]]; then
+    mv "$dst" "$dst.bak"
+    warn "Backed up existing $1 → $1.bak"
+  fi
+  ln -sf "$src" "$dst"
+  ok "Linked $1"
+}
+
+symlink ".zshrc"
+symlink ".zshenv"
+symlink ".gitconfig"
+symlink ".gitignore_global"
+
+# ── 4. Rust (before brew bundle, which installs cargo tools) ───────────────────
 step "Rust / rustup"
 if ! command -v rustup &>/dev/null; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
 fi
 # shellcheck disable=SC1091
 source "$HOME/.cargo/env"
-echo "  OK: $(rustc --version)"
+ok "$(rustc --version)"
 
-# ── 4. Homebrew Bundle ─────────────────────────────────────────────────────────
+# ── 5. Homebrew Bundle ─────────────────────────────────────────────────────────
 step "brew bundle (this takes a while)"
 BREWFILE_PATH="$REPO_DIR/Brewfile"
 if [[ ! -f "$BREWFILE_PATH" ]]; then
-  echo "  Brewfile not found at $BREWFILE_PATH — skipping"
+  error "Brewfile not found at $BREWFILE_PATH — skipping"
 else
   brew bundle --file="$BREWFILE_PATH" --no-upgrade
+  ok "brew bundle complete"
 fi
 
 # libheif postinstall sometimes fails during brew bundle — run it explicitly
 brew postinstall libheif 2>/dev/null || true
 
-# ── 5. nvm + Node ──────────────────────────────────────────────────────────────
+# ── 6. nvm + Node ──────────────────────────────────────────────────────────────
 step "nvm + Node $NODE_VERSION"
 if [[ ! -d "$HOME/.nvm" ]]; then
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+  # PROFILE=/dev/null prevents nvm modifying shell profiles (managed via dotfiles)
+  PROFILE=/dev/null curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 fi
 export NVM_DIR="$HOME/.nvm"
 # shellcheck disable=SC1091
 [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
 nvm install "$NODE_VERSION"
 nvm alias default "$NODE_VERSION"
-echo "  OK: $(node --version)"
+ok "Node $(node --version)"
 
-# ── 6. Android SDK ─────────────────────────────────────────────────────────────
+# ── 7. Android SDK ─────────────────────────────────────────────────────────────
 step "Android SDK"
 export ANDROID_HOME="$ANDROID_SDK"
 export ANDROID_SDK_ROOT="$ANDROID_SDK"
-# Android Studio bundles its own sdkmanager
-SDKMANAGER=$(find "/Applications/Android Studio.app" -name "sdkmanager" 2>/dev/null | head -1)
+# android-commandlinetools cask installs sdkmanager into ~/Library/Android/sdk
+SDKMANAGER=$(which sdkmanager 2>/dev/null || echo "")
 
 if [[ -z "$SDKMANAGER" ]]; then
-  echo "  Android Studio not installed yet — skipping SDK install"
-  echo "  Re-run this script after installing Android Studio"
+  warn "sdkmanager not found — skipping SDK install"
+  warn "Re-run this script after brew bundle completes"
 else
   yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
 
@@ -85,48 +115,26 @@ else
     "ndk;27.1.12297006" \
     "system-images;android-35;google_apis_playstore;arm64-v8a"
 
-  echo "  OK"
+  ok "Android SDK packages installed"
 fi
 
-# ── 7. Maestro (mobile UI testing) ────────────────────────────────────────────
+# ── 8. Maestro (mobile UI testing) ────────────────────────────────────────────
 step "Maestro"
 if ! command -v maestro &>/dev/null; then
   curl -Ls "https://get.maestro.mobile.dev" | bash
 fi
-echo "  OK: $(maestro --version 2>/dev/null || echo 'installed')"
+ok "Maestro $(maestro --version 2>/dev/null || echo 'installed')"
 
-# ── 8. SSH keys ────────────────────────────────────────────────────────────────
+# ── 9. SSH keys ────────────────────────────────────────────────────────────────
 step "SSH"
 if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
-  echo "  No SSH key found."
-  echo "  Either copy your existing key from your old machine:"
-  echo "    scp old-mac:~/.ssh/id_ed25519{,.pub} ~/.ssh/"
-  echo "    chmod 600 ~/.ssh/id_ed25519"
-  echo "  Or generate a new one:"
-  echo "    ssh-keygen -t ed25519 -C 'your@email.com'"
-  echo "    gh auth login   (to add it to GitHub)"
+  warn "No SSH key found."
+  warn "Copy existing key:  scp old-mac:~/.ssh/id_ed25519{,.pub} ~/.ssh/ && chmod 600 ~/.ssh/id_ed25519"
+  warn "Or generate one:    ssh-keygen -t ed25519 -C 'your@email.com' && gh ssh-key add ~/.ssh/id_ed25519.pub"
 else
-  echo "  OK: key exists"
+  ok "SSH key exists"
 fi
-
-# ── 9. Dotfiles ────────────────────────────────────────────────────────────────
-step "Dotfiles"
-DOTFILES_DIR="$REPO_DIR/dotfiles"
-symlink() {
-  local src="$DOTFILES_DIR/$1" dst="$HOME/$1"
-  if [[ -e "$dst" && ! -L "$dst" ]]; then
-    mv "$dst" "$dst.bak"
-    echo "  Backed up existing $1 → $1.bak"
-  fi
-  ln -sf "$src" "$dst"
-  echo "  Linked $1"
-}
-
-symlink ".zshrc"
-symlink ".zshenv"
-symlink ".gitconfig"
-symlink ".gitignore_global"
 
 # ── Done ───────────────────────────────────────────────────────────────────────
 echo
-echo "✓ Bootstrap complete."
+echo -e "${GREEN}${BOLD}✓ Bootstrap complete.${RESET}"
