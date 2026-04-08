@@ -19,9 +19,13 @@ echo "  OK"
 
 # ── 2. Homebrew ────────────────────────────────────────────────────────────────
 step "Homebrew"
+echo "  /opt/homebrew/bin/brew exists: $([[ -f /opt/homebrew/bin/brew ]] && echo yes || echo no)"
+echo "  /usr/local/bin/brew exists:    $([[ -f /usr/local/bin/brew ]] && echo yes || echo no)"
 [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 [[ -f /usr/local/bin/brew ]]    && eval "$(/usr/local/bin/brew shellenv)"
+echo "  brew in PATH: $(command -v brew 2>/dev/null || echo no)"
 if ! command -v brew &>/dev/null; then
+  echo "  Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
   [[ -f /usr/local/bin/brew ]]    && eval "$(/usr/local/bin/brew shellenv)"
