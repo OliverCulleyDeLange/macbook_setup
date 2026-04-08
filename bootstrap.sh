@@ -65,9 +65,9 @@ step "Android SDK"
 export ANDROID_HOME="$ANDROID_SDK"
 export ANDROID_SDK_ROOT="$ANDROID_SDK"
 # Android Studio bundles its own sdkmanager
-SDKMANAGER="/Applications/Android Studio.app/Contents/plugins/android/lib/deploy/sdkmanager/bin/sdkmanager"
+SDKMANAGER=$(find "/Applications/Android Studio.app" -name "sdkmanager" 2>/dev/null | head -1)
 
-if [[ ! -f "$SDKMANAGER" ]]; then
+if [[ -z "$SDKMANAGER" ]]; then
   echo "  Android Studio not installed yet — skipping SDK install"
   echo "  Re-run this script after installing Android Studio"
 else
