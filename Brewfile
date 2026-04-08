@@ -99,17 +99,34 @@ brew "taglib"
 brew "smartmontools"
 brew "rtk"
 
-# Apps (casks)
+# Apps (casks) — dev tools
 cask "android-commandlinetools"
+cask "android-studio"
 cask "blackhole-16ch"
 cask "blackhole-2ch"
 cask "bloomrpc"
 cask "claude-code"
+cask "codex"
 cask "steipete/tap/codexbar"
 cask "dbeaver-community"
 cask "josm"
 cask "jumpcut"
+cask "postgres-unofficial"
+cask "tableplus"
 cask "temurin"
+cask "visual-studio-code"
+
+# Apps (casks) — productivity & comms
+cask "microsoft-onenote"
+cask "setapp"
+cask "slack"
+cask "timemator"
+cask "whatsapp"
+
+# Apps (casks) — media & utilities
+cask "disk-inventory-x"
+cask "ollama"
+cask "spotify"
 
 # Cargo tools (requires Rust to be installed first — see bootstrap.sh)
 cargo "cargo-insta"
